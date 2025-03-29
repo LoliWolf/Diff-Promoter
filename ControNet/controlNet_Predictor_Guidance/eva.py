@@ -7,14 +7,14 @@ import numpy as np
 from adv_model import Net as advNet
 import csv
 
-device = torch.device('cuda:3')
+device = torch.device('cpu')
 
 model = ControlNet().to(device)
 model.load_state_dict(torch.load('ControlNet_param.pkl', map_location=device))
 model.eval()
 
 adv_model = advNet().to(device)
-adv_model.load_state_dict(torch.load('adv_model_params.pkl', map_location=device))
+adv_model.load_state_dict(torch.load('adv_model_params.pkl', map_location=device)) # adv_model 一种环境，可选其他
 adv_model.eval()
 
 
@@ -47,12 +47,13 @@ def seqs2tensor(seqs, device=device):
 hot_one = {0: 'A', 1: 'C', 2: 'G', 3: 'T'}
 
 import pandas as pd
-dict_seqs = {}
-df = pd.read_excel(r'gene_change_20bp_from_135.xlsx')
-for row in df.index.values:
-    dict_seqs[df.iloc[row, 1]] = df.iloc[row, 2].upper()
+# 用户要自己输入序列
+# dict_seqs = {}
+# df = pd.read_excel(r'gene_change_20bp_from_135.xlsx')
+# for row in df.index.values:
+#     dict_seqs[df.iloc[row, 1]] = df.iloc[row, 2].upper()
 
-
+# dict_seqs 一个序列一个元素 让用户输入
 for gene, seq in dict_seqs.items():
     x_start = torch.randn(100, 4, 176, device=device)
 
