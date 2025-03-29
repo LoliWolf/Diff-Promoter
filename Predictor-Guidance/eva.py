@@ -1,3 +1,5 @@
+import os
+
 import torch
 import torch.nn as nn
 from model import *
@@ -6,10 +8,10 @@ import numpy as np
 from adv_model import Net as advNet
 import csv
 
-device = torch.device('cpu')
+device = torch.device('cuda:0')
 
 
-model = torch.load('model.pkl', map_location=device)
+model = torch.load('model.pkl', map_location=device, weights_only=False)
 model.eval()
 
 adv_model = advNet().to(device)
@@ -75,7 +77,7 @@ for iters in range(1):# 运行次数
     last_seqs += tmp_last_seqs
     last_v += adv_model(seqs2tensor(tmp_last_seqs)).detach().cpu().numpy().tolist()
 
-
+os.makedirs('res', exist_ok=True)
 with open('res/ori_gene.txt', 'w') as f:
     for i, seq in enumerate(ori_seqs):
         f.write('>gen_' + str(i) + '\n')

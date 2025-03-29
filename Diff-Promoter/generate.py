@@ -10,14 +10,14 @@ import numpy as np
 import os
 from itertools import islice
 
-device = torch.device('cpu')
+device = torch.device('cuda:0')
 
 timesteps = 1000
 gaussian_diffusion = GaussianDiffusion(timesteps=timesteps)
 
-
+os.makedirs('res', exist_ok=True)
 # model = UNetModel()
-model = torch.load('../params/model.pkl', map_location=device)
+model = torch.load('../params/model.pkl', map_location=device,  weights_only=False)
 model.to(device)
 model.eval()
 g_seqs = generate_gen(model, gaussian_diffusion, 1) # 输入 生成几条

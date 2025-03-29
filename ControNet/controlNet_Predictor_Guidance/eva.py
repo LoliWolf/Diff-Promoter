@@ -1,3 +1,5 @@
+import os
+
 import torch
 import torch.nn as nn
 from tqdm import tqdm
@@ -7,7 +9,7 @@ import numpy as np
 from adv_model import Net as advNet
 import csv
 
-device = torch.device('cpu')
+device = torch.device('cuda:0')
 
 model = ControlNet().to(device)
 model.load_state_dict(torch.load('ControlNet_param.pkl', map_location=device))
@@ -48,7 +50,7 @@ hot_one = {0: 'A', 1: 'C', 2: 'G', 3: 'T'}
 
 import pandas as pd
 # 用户要自己输入序列
-# dict_seqs = {}
+dict_seqs = {"gen_0":"ACCTTGAAAGTATTTTTCACTGTATTTTGACGTCAGCCCATCACAATCTCGAAACCTTAAAGCTTATCGCGGCTTGCCCCGCCCACCACACGCACTGCCATGAATCCCCGCGCACTGATCATGCTCAGCACTGTCGTTTTCAGTGGGGGTGGCCAGAAAAGAGACCAGCT"}
 # df = pd.read_excel(r'gene_change_20bp_from_135.xlsx')
 # for row in df.index.values:
 #     dict_seqs[df.iloc[row, 1]] = df.iloc[row, 2].upper()
@@ -63,7 +65,7 @@ for gene, seq in dict_seqs.items():
 
         #####ori#####
         generate_gen = gaussian_diffusion.sample(model, c, 176, batch_size=100, channels=4, cond=False, x_start=x_start)
-        
+        os.makedirs('res', exist_ok=True)
         np.save("res/"+ gene +  "_" + str(idx) + "_ori.npy", generate_gen[-1])
         
         ori_seqs = []
