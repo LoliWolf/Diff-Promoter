@@ -4,7 +4,7 @@ from torch.utils import data
 
 
 dict_promoter = {}
-with open(r'./data/maize_seq.csv', 'r') as f:
+with open(r'../../data/maize_seq.csv', 'r') as f:
     for line in islice(f, 1, None):
         tmp = line[:-1].split(',')
         dict_promoter[tmp[0]] = tmp[11]
