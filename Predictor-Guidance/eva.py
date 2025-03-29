@@ -1,24 +1,23 @@
 import torch
 import torch.nn as nn
-from tqdm import tqdm
 from model import *
 from utils import *
 import numpy as np
 from adv_model import Net as advNet
 import csv
 
-device = torch.device('cuda:3')
+device = torch.device('cpu')
 
 
 model = torch.load('model.pkl', map_location=device)
 model.eval()
 
 adv_model = advNet().to(device)
-adv_model.load_state_dict(torch.load('adv_model_params.pkl', map_location=device))
+adv_model.load_state_dict(torch.load('adv_model_params.pkl', map_location=device)) # adv_model 一种环境，其他暂无
 adv_model.eval()
 
 
-def cond_fn(x, target=10, guidance_loss_scale=10000):
+def cond_fn(x, target=10, guidance_loss_scale=10000): # target:目标活性 用户输入
     loss_fn = nn.MSELoss()
     tar = torch.tensor([target] * x.size(0), dtype=torch.float, device=x.device)
     with torch.enable_grad():
@@ -49,10 +48,10 @@ hot_one = {0: 'A', 1: 'C', 2: 'G', 3: 'T'}
 
 ori_seqs, last_seqs = [], []
 ori_v, last_v = [], []
-for iters in range(5):
-    x_start = torch.randn(2000, 4, 176, device=device)
+for iters in range(1):# 运行次数
+    x_start = torch.randn(1, 4, 176, device=device) # 1：次数
 
-    generate_gen = gaussian_diffusion.sample(model, 176, batch_size=2000, channels=4, cond=False, x_start=x_start)
+    generate_gen = gaussian_diffusion.sample(model, 176, batch_size=1, channels=4, cond=False, x_start=x_start)#batch_size
         
     tmp_ori_seqs = []
     for seq in generate_gen[-1]:
@@ -65,7 +64,7 @@ for iters in range(5):
     ori_v += adv_model(seqs2tensor(tmp_ori_seqs)).detach().cpu().numpy().tolist()
 
 
-    generate_gen = gaussian_diffusion.sample(model, 176, batch_size=2000, channels=4, cond=True, cond_fn=cond_fn, x_start=x_start)
+    generate_gen = gaussian_diffusion.sample(model, 176, batch_size=1, channels=4, cond=True, cond_fn=cond_fn, x_start=x_start) # batch_size
     tmp_last_seqs = []
     for seq in generate_gen[-1]:
         res = ''
