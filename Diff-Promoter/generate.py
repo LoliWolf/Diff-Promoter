@@ -10,7 +10,25 @@ import numpy as np
 import os
 from itertools import islice
 
-device = torch.device('cuda:0')
+if os.path.exists('res'):
+    import shutil
+    shutil.rmtree('res')
+
+device = None
+if hasattr(torch, 'cuda') and torch.cuda.is_available():
+    try:
+        device = torch.device('cuda:0')
+        # 简单测试CUDA是否真的可用
+        torch.zeros(1).to(device)
+    except:
+        device = None
+
+if device is None and hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+    device = torch.device('mps')
+
+if device is None:
+    device = torch.device('cpu')
+print(f"Using device: {device}")
 
 timesteps = 1000
 gaussian_diffusion = GaussianDiffusion(timesteps=timesteps)
