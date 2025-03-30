@@ -1,3 +1,4 @@
+import argparse
 import sys
 import time
 
@@ -10,9 +11,13 @@ import numpy as np
 import os
 from itertools import islice
 
-if os.path.exists('res'):
-    import shutil
-    shutil.rmtree('res')
+# if os.path.exists('res'):
+#     import shutil
+#     shutil.rmtree('res')
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-task_id', type=int, default=1, help='backend task id')
+args = parser.parse_args()
 
 device = None
 if hasattr(torch, 'cuda') and torch.cuda.is_available():
@@ -39,7 +44,7 @@ model = torch.load('../params/model.pkl', map_location=device,  weights_only=Fal
 model.to(device)
 model.eval()
 g_seqs = generate_gen(model, gaussian_diffusion, 1) # 输入 生成几条
-with open('./res/' + "" + '_' + time.time().__str__() + '_gene_seqs.fasta', 'w') as f: # 生成 fasta 文件
+with open('./res/' + f"{args.task_id}" + '.fasta', 'w') as f: # 生成 fasta 文件
     for idx, seq in enumerate(g_seqs):
         f.write('>gen_' + str(idx) + '\n')
         f.write(seq + '\n')
