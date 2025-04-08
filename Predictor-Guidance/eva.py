@@ -1,9 +1,12 @@
 import argparse
+import io
 import os
+import sys
 
 import torch
 import torch.nn as nn
 from sympy.strategies.core import switch
+from torchgen.api.types import doubleT
 
 from model import *
 from utils import *
@@ -14,7 +17,7 @@ import csv
 parser = argparse.ArgumentParser()
 parser.add_argument('-task_id', type=int, help='后端task_id')
 parser.add_argument('-env', type=str, help='使用环境')
-parser.add_argument('-target', type=int, help='目标活性')
+parser.add_argument('-target', type=float, help='目标活性')
 
 args = parser.parse_args()
 task_id = args.task_id
@@ -135,7 +138,7 @@ with open(f'Predictor-Guidance/res/{task_id}/last_pred_v.csv', 'w', newline='') 
 
     for i, tv in enumerate(last_v):
         csv_writer.writerow(['gen_' + str(i), tv])
-
+sys.exit(0)
 '''
 sss_cc = seqs2tensor(ori_seqs)
 tensor2seq_v = adv_model(sss_cc).detach().cpu().numpy().tolist()
