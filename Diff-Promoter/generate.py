@@ -40,11 +40,11 @@ gaussian_diffusion = GaussianDiffusion(timesteps=timesteps)
 
 os.makedirs('res', exist_ok=True)
 # model = UNetModel()
-model = torch.load('../params/model.pkl', map_location=device,  weights_only=False)
+model = torch.load('params/model.pkl', map_location=device,  weights_only=False)
 model.to(device)
 model.eval()
 g_seqs = generate_gen(model, gaussian_diffusion, 1) # 输入 生成几条
-with open('./res/' + f"{args.task_id}" + '.fasta', 'w') as f: # 生成 fasta 文件
+with open('Diff-Promoter/res/' + f"{args.task_id}" + '.fasta', 'w') as f: # 生成 fasta 文件
     for idx, seq in enumerate(g_seqs):
         f.write('>gen_' + str(idx) + '\n')
         f.write(seq + '\n')
