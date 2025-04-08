@@ -1,25 +1,59 @@
+import argparse
 import os
 
 import torch
 import torch.nn as nn
+from sympy.strategies.core import switch
+
 from model import *
 from utils import *
 import numpy as np
 from adv_model import Net as advNet
 import csv
 
-device = torch.device('cuda:0')
+parser = argparse.ArgumentParser()
+parser.add_argument('-task_id', type=int, help='后端task_id')
+parser.add_argument('-env', type=str, help='使用环境')
+parser.add_argument('-target', type=int, help='目标活性')
+
+args = parser.parse_args()
+task_id = args.task_id
+env = args.env
+target_input = args.target
+
+device = None
+if hasattr(torch, 'cuda') and torch.cuda.is_available():
+    try:
+        device = torch.device('cuda:0')
+        # 简单测试CUDA是否真的可用
+        torch.zeros(1).to(device)
+    except:
+        device = None
+
+if device is None and hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+    device = torch.device('mps')
+
+if device is None:
+    device = torch.device('cpu')
+print(f"Using device: {device}")
+# 环境选择
+filename = 'Predictor-Guidance/'
+if env == 'adv_model':
+    filename += "adv_model_params.pkl"
+
+if filename == 'Predictor-Guidance/':
+    raise ValueError("env参数错误")
 
 
-model = torch.load('model.pkl', map_location=device, weights_only=False)
+model = torch.load('Predictor-Guidance/model.pkl', map_location=device, weights_only=False)
 model.eval()
 
 adv_model = advNet().to(device)
-adv_model.load_state_dict(torch.load('adv_model_params.pkl', map_location=device)) # adv_model 一种环境，其他暂无
+adv_model.load_state_dict(torch.load(filename, map_location=device)) # adv_model 一种环境，其他暂无
 adv_model.eval()
 
 
-def cond_fn(x, target=10, guidance_loss_scale=10000): # target:目标活性 用户输入
+def cond_fn(x, target=target_input, guidance_loss_scale=10000): # target:目标活性 用户输入
     loss_fn = nn.MSELoss()
     tar = torch.tensor([target] * x.size(0), dtype=torch.float, device=x.device)
     with torch.enable_grad():
@@ -77,25 +111,25 @@ for iters in range(1):# 运行次数
     last_seqs += tmp_last_seqs
     last_v += adv_model(seqs2tensor(tmp_last_seqs)).detach().cpu().numpy().tolist()
 
-os.makedirs('res', exist_ok=True)
-with open('res/ori_gene.txt', 'w') as f:
+os.makedirs(f'Predictor-Guidance/res/{task_id}', exist_ok=True)
+with open(f'Predictor-Guidance/res/{task_id}/ori_gene.txt', 'w') as f:
     for i, seq in enumerate(ori_seqs):
         f.write('>gen_' + str(i) + '\n')
         f.write(seq + '\n')
 
-with open('res/last_gene.txt', 'w') as f:
+with open(f'Predictor-Guidance/res/{task_id}/last_gene.txt', 'w') as f:
     for i, seq in enumerate(last_seqs):
         f.write('>gen_' + str(i) + '\n')
         f.write(seq + '\n')
 
-with open('res/ori_pred_v.csv', 'w', newline='') as f:
+with open(f'Predictor-Guidance/res/{task_id}/ori_pred_v.csv', 'w', newline='') as f:
     csv_writer = csv.writer(f)
     csv_writer.writerow(['gene', 'pred_v'])
 
     for i, tv in enumerate(ori_v):
         csv_writer.writerow(['gen_' + str(i), tv])
 
-with open('res/last_pred_v.csv', 'w', newline='') as f:
+with open(f'Predictor-Guidance/res/{task_id}/last_pred_v.csv', 'w', newline='') as f:
     csv_writer = csv.writer(f)
     csv_writer.writerow(['gene', 'pred_v'])
 
