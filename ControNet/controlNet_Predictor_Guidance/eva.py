@@ -24,9 +24,10 @@ import csv
 parser = argparse.ArgumentParser()
 parser.add_argument('-task_id', type=int, help='后端task_id')
 parser.add_argument('-env', type=str, help='使用环境')
-parser.add_argument('-gene_name', type=str, help='基因名字(fasta)')
+parser.add_argument('-gene_name', type=str, help='基因名字(fasta)') # 没用 随便输入
 parser.add_argument('-sequence', type=str, help='基因序列(fasta)')
 parser.add_argument('-position', type=int, help='指定位置')
+parser.add_argument('-target', type=float, help='指定目标活性')
 
 args = parser.parse_args()
 task_id = args.task_id
@@ -34,6 +35,7 @@ env = args.env
 gene_name = args.gene_name
 sequence = args.sequence
 position = args.position
+target_input = args.target
 
 device = None
 if hasattr(torch, 'cuda') and torch.cuda.is_available():
@@ -52,7 +54,7 @@ if device is None:
 print(f"Using device: {device}")
 # 环境选择
 filename = 'ControNet/controlNet_Predictor_Guidance/'
-if env == 'adv_model':
+if env == 'WDM':
     filename += "adv_model_params.pkl"
 
 if filename == 'ControNet/controlNet_Predictor_Guidance/':
@@ -66,8 +68,8 @@ adv_model = advNet().to(device)
 adv_model.load_state_dict(torch.load(filename, map_location=device)) # adv_model 一种环境，可选其他
 adv_model.eval()
 
-
-def cond_fn(x, target=10, guidance_loss_scale=10000):
+# target 输入[1,15]
+def cond_fn(x, target=target_input, guidance_loss_scale=10000):
     loss_fn = nn.MSELoss()
     tar = torch.tensor([target] * x.size(0), dtype=torch.float, device=x.device)
     with torch.enable_grad():
@@ -109,7 +111,7 @@ for gene, seq in dict_seqs.items():
 
     idx = position
     # for idx in range(len(seq) - 6):
-    c_seqs = [seq[:idx] + 'N'*6 + seq[idx+6:]] * 100
+    c_seqs = [seq[:idx] + 'N'*6 + seq[idx+6:]] * 100 # 拿输入的 前后和这里比较 一样的保留 作为结果
     c = seqs2tensor(c_seqs)
 
     #####ori#####
