@@ -41,7 +41,7 @@ if device is None:
 print(f"Using device: {device}")
 # 环境选择
 filename = 'Predictor-Guidance/'
-if env == 'adv_model':
+if env == 'WDM':
     filename += "adv_model_params.pkl"
 
 if filename == 'Predictor-Guidance/':
