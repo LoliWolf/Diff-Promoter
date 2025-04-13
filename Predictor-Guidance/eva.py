@@ -1,5 +1,4 @@
-# D:\code\git-project\Diff-Promoter\.venv\Scripts\python.exe
-
+# D:\code\git-project\Diff-Promoter\.venv\Scripts\python.exe D:\code\git-project\Diff-Promoter\Predictor-Guidance\eva.py -task_id 1 -env WDM -target 0.5
 import argparse
 import io
 import os
