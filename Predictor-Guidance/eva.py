@@ -59,7 +59,7 @@ adv_model.eval()
 
 def cond_fn(x, target=target_input, guidance_loss_scale=10000): # target:目标活性 用户输入
     loss_fn = nn.MSELoss()
-    tar = torch.tensor([target] * x.size(0), dtype=torch.float, device=x.device)
+    tar = torch.tensor([target] * x.size(0), dtype=torch.float32, device=x.device)
     with torch.enable_grad():
         x_in = x.detach().requires_grad_(True)
         y = adv_model(x_in)
@@ -77,7 +77,7 @@ def seqs2tensor(seqs, device=device):
         encode_seq = []
         for element in 'NNN' + seq.upper() + 'NNN':
             encode_seq.append(one_hot[element])
-        seqs_tensor.append(torch.tensor(encode_seq, dtype=torch.float, device=device).t().unsqueeze(dim=0))
+        seqs_tensor.append(torch.tensor(encode_seq, dtype=torch.float32, device=device).t().unsqueeze(dim=0))
     return torch.cat(seqs_tensor, 0)
 
 
