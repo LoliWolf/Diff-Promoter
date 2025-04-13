@@ -1,3 +1,5 @@
+# D:\code\git-project\Diff-Promoter\.venv\Scripts\python.exe
+
 import argparse
 import io
 import os
