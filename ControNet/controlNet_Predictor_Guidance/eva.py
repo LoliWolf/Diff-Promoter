@@ -46,8 +46,8 @@ if hasattr(torch, 'cuda') and torch.cuda.is_available():
     except:
         device = None
 
-# if device is None and hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
-#     device = torch.device('mps')
+if device is None and hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+    device = torch.device('mps')
 
 if device is None:
     device = torch.device('cpu')
@@ -71,7 +71,7 @@ adv_model.eval()
 # target 输入[1,15]
 def cond_fn(x, target=target_input, guidance_loss_scale=10000):
     loss_fn = nn.MSELoss()
-    tar = torch.tensor([target] * x.size(0), dtype=torch.float, device=x.device)
+    tar = torch.tensor([target] * x.size(0), dtype=torch.float32, device=x.device)
     with torch.enable_grad():
         x_in = x.detach().requires_grad_(True)
         y = adv_model(x_in)
@@ -92,7 +92,7 @@ def seqs2tensor(seqs, device=device):
         encode_seq = []
         for element in 'NNN' + seq.upper() + 'NNN':
             encode_seq.append(one_hot[element])
-        seqs_tensor.append(torch.tensor(encode_seq, dtype=torch.float, device=device).t().unsqueeze(dim=0))
+        seqs_tensor.append(torch.tensor(encode_seq, dtype=torch.float32, device=device).t().unsqueeze(dim=0))
     return torch.cat(seqs_tensor, 0)
 
 hot_one = {0: 'A', 1: 'C', 2: 'G', 3: 'T'}
@@ -132,7 +132,7 @@ for gene, seq in dict_seqs.items():
             f.write('>gen_' + str(i) + '\n')
             f.write(seq + '\n')
 
-    sss = torch.tensor(generate_gen[-1], dtype=torch.float, device=device)
+    sss = torch.tensor(generate_gen[-1], dtype=torch.float32, device=device)
     tensor_v = adv_model(sss).detach().cpu().numpy().tolist()
 
     sss_cc = seqs2tensor(ori_seqs)
@@ -163,7 +163,7 @@ for gene, seq in dict_seqs.items():
             f.write('>gen_' + str(i) + '\n')
             f.write(seq + '\n')
 
-    sss = torch.tensor(generate_gen[-1], dtype=torch.float, device=device)
+    sss = torch.tensor(generate_gen[-1], dtype=torch.float32, device=device)
     tensor_v = adv_model(sss).detach().cpu().numpy().tolist()
 
     sss_cc = seqs2tensor(last_seqs)
