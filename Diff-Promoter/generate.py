@@ -1,4 +1,5 @@
 # D:\code\git-project\Diff-Promoter\.venv\Scripts\python.exe D:\code\git-project\Diff-Promoter\Diff-Promoter\generate.py -task_id 1
+# python Diff-Promoter/generate.py -task_id 1
 import argparse
 import sys
 import time
