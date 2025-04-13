@@ -1,5 +1,5 @@
 # 示例指令
-# D:\code\git-project\Diff-Promoter\.venv\Scripts\python.exe D:\code\git-project\Diff-Promoter\ControNet\controlNet_Predictor_Guidance\eva.py -task_id 12 -env adv_model -gene_name name1 -sequence ACCTTGAAAGTATTTTTCACTGTATTTTGACGTCAGCCCATCACAATCTCGAAACCTTAAAGCTTATCGCGGCTTGCCCCGCCCACCACACGCACTGCCATGAATCCCCGCGCACTGATCATGCTCAGCACTGTCGTTTTCAGTGGGGGTGGCCAGAAAAGAGACCAGCT -position 164
+# D:\code\git-project\Diff-Promoter\.venv\Scripts\python.exe D:\code\git-project\Diff-Promoter\ControNet\controlNet_Predictor_Guidance\eva.py -task_id 12 -env WDM -gene_name name1 -sequence ACCTTGAAAGTATTTTTCACTGTATTTTGACGTCAGCCCATCACAATCTCGAAACCTTAAAGCTTATCGCGGCTTGCCCCGCCCACCACACGCACTGCCATGAATCCCCGCGCACTGATCATGCTCAGCACTGTCGTTTTCAGTGGGGGTGGCCAGAAAAGAGACCAGCT -position 164
 import argparse
 import os
 
@@ -46,8 +46,8 @@ if hasattr(torch, 'cuda') and torch.cuda.is_available():
     except:
         device = None
 
-if device is None and hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
-    device = torch.device('mps')
+# if device is None and hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+#     device = torch.device('mps')
 
 if device is None:
     device = torch.device('cpu')
