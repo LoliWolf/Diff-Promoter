@@ -55,7 +55,7 @@ print(f"Using device: {device}")
 # 环境选择
 filename = 'ControNet/controlNet_Predictor_Guidance/'
 if env == 'WDM':
-    filename += "adv_model_params.pkl"
+    filename += "adv_model_params.pkl" # 6文件 controlnet只有玉米
 
 if filename == 'ControNet/controlNet_Predictor_Guidance/':
     raise ValueError("env参数错误")
