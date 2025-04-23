@@ -6,6 +6,7 @@ import torch
 from adv_model import Net
 import Bio.SeqIO
 import csv
+import json
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-task_id', type=int, help='后端task_id')
@@ -146,52 +147,98 @@ for itertion in range(1, 16):
 
     dict_sswm_min[itertion] = (res_min_seq, res_min_v)
 
-gene_names = list(dict_gene.keys())
+# gene_names = list(dict_gene.keys())
 
 os.makedirs(f'sswm/res/{task_id}', exist_ok=True)
-with open(f'sswm/res/{task_id}/max_seq_change.csv', 'w', newline='') as f:  # 最大迭代 每轮序列 16行10列 每个元素是一条序列
-    csv_writer = csv.writer(f)
-    csv_writer.writerow(gene_names)  # 15轮 每轮换一个位置的碱基
+seq_max = []
+for itertion in range(0, 16):  # 最大迭代 每轮序列 16行 每个元素是一条序列
+    seq_max.append(dict_sswm_max[itertion][0][gene_name])
 
-    for itertion in range(0, 16):
-        seq_max = dict_sswm_max[itertion][0]
-        res = []
-        for gene in gene_names:
-            res.append(seq_max[gene])
-        csv_writer.writerow(res)
+v_max = []
+for itertion in range(0, 16):  # 最大迭代 每轮预测的活性值 16行 每个元素是一个值
+    v_max.append(dict_sswm_max[itertion][1][gene_name])
 
-with open(f'sswm/res/{task_id}/max_v_change.csv', 'w', newline='') as f:  # 最大迭代 每轮预测的活性值 16行10列 每个元素是一个值
-    csv_writer = csv.writer(f)
-    csv_writer.writerow(gene_names)
+seq_min = []
+for itertion in range(0, 16):  # 最小迭代 每轮序列 16行 每个元素是一条序列
+    seq_min.append(dict_sswm_min[itertion][0][gene_name])
 
-    for itertion in range(0, 16):
-        v_max = dict_sswm_max[itertion][1]
-        res = []
-        for gene in gene_names:
-            res.append(v_max[gene])
-        csv_writer.writerow(res)
+v_min = []
+for itertion in range(0, 16):  # 最小迭代 每轮预测的活性值 16行 每个元素是一个值
+    v_min.append(dict_sswm_min[itertion][1][gene_name])
 
-with open(f'sswm/res/{task_id}/min_seq_change.csv', 'w', newline='') as f:  # 最小迭代 每轮序列 16行10列 每个元素是一条序列
-    csv_writer = csv.writer(f)
-    csv_writer.writerow(gene_names)
+# 和初始的diff
+diff_max = []
+diff_min = []
+res = []
+for i in range(16):
+    seq_max_i = seq_max[i]
+    seq_min_i = seq_min[i]
 
-    for itertion in range(0, 16):
-        seq_min = dict_sswm_min[itertion][0]
-        res = []
-        for gene in gene_names:
-            res.append(seq_min[gene])
-        csv_writer.writerow(res)
-
-with open(f'sswm/res/{task_id}/min_v_change.csv', 'w', newline='') as f:  # 最小迭代 每轮预测的活性值 16行10列 每个元素是一个值
-    csv_writer = csv.writer(f)
-    csv_writer.writerow(gene_names)
-
-    for itertion in range(0, 16):
-        v_min = dict_sswm_min[itertion][1]
-        res = []
-        for gene in gene_names:
-            res.append(v_min[gene])
-        csv_writer.writerow(res)
+    diff_max_i = 0
+    diff_min_i = 0
+    for j in range(170):
+        if seq_max_i[j] != dict_gene[gene_name][j]:
+            diff_max_i = j
+        if seq_min_i[j] != dict_gene[gene_name][j]:
+            diff_min_i = j
+        if diff_max_i != 0 and diff_min_i != 0:
+            break
+    diff_max.append(diff_max_i)
+    diff_min.append(diff_min_i)
+    res.append({
+        "seq_max": seq_max_i,
+        "seq_min": seq_min_i,
+        "diff_max": diff_max_i,
+        "diff_min": diff_min_i,
+        "v_max": v_max[i],
+        "v_min": v_min[i]
+    })
+with open(f'sswm/res/{task_id}/res.txt', 'w') as f:
+    json.dump(res, f)
+    # json.dump(res, f, indent=4)
+# with open(f'sswm/res/{task_id}/max_seq_change.csv', 'w', newline='') as f:  # 最大迭代 每轮序列 16行10列 每个元素是一条序列
+#     csv_writer = csv.writer(f)
+#     csv_writer.writerow(gene_names)  # 15轮 每轮换一个位置的碱基
+#
+#     for itertion in range(0, 16):
+#         seq_max = dict_sswm_max[itertion][0]
+#         res = []
+#         for gene in gene_names:
+#             res.append(seq_max[gene])
+#         csv_writer.writerow(res)
+#
+# with open(f'sswm/res/{task_id}/max_v_change.csv', 'w', newline='') as f:  # 最大迭代 每轮预测的活性值 16行10列 每个元素是一个值
+#     csv_writer = csv.writer(f)
+#     csv_writer.writerow(gene_names)
+#
+#     for itertion in range(0, 16):
+#         v_max = dict_sswm_max[itertion][1]
+#         res = []
+#         for gene in gene_names:
+#             res.append(v_max[gene])
+#         csv_writer.writerow(res)
+#
+# with open(f'sswm/res/{task_id}/min_seq_change.csv', 'w', newline='') as f:  # 最小迭代 每轮序列 16行10列 每个元素是一条序列
+#     csv_writer = csv.writer(f)
+#     csv_writer.writerow(gene_names)
+#
+#     for itertion in range(0, 16):
+#         seq_min = dict_sswm_min[itertion][0]
+#         res = []
+#         for gene in gene_names:
+#             res.append(seq_min[gene])
+#         csv_writer.writerow(res)
+#
+# with open(f'sswm/res/{task_id}/min_v_change.csv', 'w', newline='') as f:  # 最小迭代 每轮预测的活性值 16行10列 每个元素是一个值
+#     csv_writer = csv.writer(f)
+#     csv_writer.writerow(gene_names)
+#
+#     for itertion in range(0, 16):
+#         v_min = dict_sswm_min[itertion][1]
+#         res = []
+#         for gene in gene_names:
+#             res.append(v_min[gene])
+#         csv_writer.writerow(res)
 
 # 呈现 每条序列的值的变化 16条序列每个和初始的diff 画图 最大最小 两组
 
