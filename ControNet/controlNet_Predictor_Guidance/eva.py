@@ -1,5 +1,5 @@
 # 示例指令
-# D:\code\git-project\Diff-Promoter\.venv\Scripts\python.exe D:\code\git-project\Diff-Promoter\ControNet\controlNet_Predictor_Guidance\eva.py -task_id 12 -env WDM -gene_name name1 -sequence ACCTTGAAAGTATTTTTCACTGTATTTTGACGTCAGCCCATCACAATCTCGAAACCTTAAAGCTTATCGCGGCTTGCCCCGCCCACCACACGCACTGCCATGAATCCCCGCGCACTGATCATGCTCAGCACTGTCGTTTTCAGTGGGGGTGGCCAGAAAAGAGACCAGCT -position 164 -target 3.5
+# D:\code\git-project\Diff-Promoter\.venv\Scripts\python.exe D:\code\git-project\Diff-Promoter\ControNet\controlNet_Predictor_Guidance\eva.py -task_id 12 -env WDM -gene_name name1 -sequence ACCTTGAAAGTATTTTTCACTGTATTTTGACGTCAGCCCATCACAATCTCGAAACCTTAAAGCTTATCGCGGCTTGCCCCGCCCACCACACGCACTGCCATGAATCCCCGCGCACTGATCATGCTCAGCACTGTCGTTTTCAGTGGGGGTGGCCAGAAAAGAGACCAGCT -position 164 -target 3.5 -species maize
 import argparse
 import os
 
@@ -28,6 +28,7 @@ parser.add_argument('-gene_name', type=str, help='基因名字(fasta)') # 没用
 parser.add_argument('-sequence', type=str, help='基因序列(fasta)')
 parser.add_argument('-position', type=int, help='指定位置')
 parser.add_argument('-target', type=float, help='指定目标活性')
+parser.add_argument('-species', type=str, help='maize | sorghum | arabidopsis')
 
 args = parser.parse_args()
 task_id = args.task_id
@@ -52,12 +53,32 @@ if hasattr(torch, 'cuda') and torch.cuda.is_available():
 if device is None:
     device = torch.device('cpu')
 print(f"Using device: {device}")
-# 环境选择
-filename = 'ControNet/controlNet_Predictor_Guidance/'
-if env == 'WDM':
-    filename += "adv_model_params.pkl" # 6文件 controlnet只有玉米
 
-if filename == 'ControNet/controlNet_Predictor_Guidance/':
+# 环境选择
+species = args.species
+file_path_species = ''
+if species == 'maize':
+    file_path_species = 'maize'
+elif species == 'sorghum':
+    file_path_species = 'sorghum'
+elif species == 'arabidopsis':
+    file_path_species = 'arabidopsis'
+else:
+    raise ValueError("species参数错误")
+file_path = f'Predictor-Guidance/{file_path_species}/'
+if env == 'WDM':
+    filename = file_path + "wdm/model_params.pkl"
+elif env == 'NDM':
+    filename = file_path + "ndm/model_params.pkl"
+elif env == 'NDT':
+    filename = file_path + "ndt/model_params.pkl"
+elif env == 'NLT':
+    filename = file_path + "nlt/model_params.pkl"
+elif env == 'WDT':
+    filename = file_path + "wdt/model_params.pkl"
+elif env == 'WLT':
+    filename = file_path + "wlt/model_params.pkl"
+else:
     raise ValueError("env参数错误")
 
 model = ControlNet().to(device)
@@ -65,7 +86,7 @@ model.load_state_dict(torch.load('ControNet/controlNet_Predictor_Guidance/Contro
 model.eval()
 
 adv_model = advNet().to(device)
-adv_model.load_state_dict(torch.load(filename, map_location=device)) # adv_model 一种环境，可选其他
+adv_model.load_state_dict(torch.load(filename, map_location=device)) # 选择环境
 adv_model.eval()
 
 # target 输入[1,15]
