@@ -15,6 +15,8 @@ from deeplift.dinuc_shuffle import dinuc_shuffle
 from deeplift.visualization import viz_sequence
 from itertools import islice
 
+os.environ['PYTORCH_ENABLE_MPS_FALLBACK'] = '1'
+
 matplotlib.use('Agg')
 
 parser = argparse.ArgumentParser()

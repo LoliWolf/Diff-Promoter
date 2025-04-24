@@ -9,6 +9,8 @@ import Bio.SeqIO
 import csv
 import json
 
+os.environ['PYTORCH_ENABLE_MPS_FALLBACK'] = '1'
+
 parser = argparse.ArgumentParser()
 parser.add_argument('-task_id', type=int, help='后端task_id')
 parser.add_argument('-env', type=str, help='使用环境')
