@@ -38,8 +38,8 @@ if hasattr(torch, 'cuda') and torch.cuda.is_available():
     except:
         device = None
 
-if device is None and hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
-    device = torch.device('mps')
+# if device is None and hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+#     device = torch.device('mps') # mps在此处有不支持的方法，降级也没用
 
 if device is None:
     device = torch.device('cpu')
