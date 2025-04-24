@@ -35,8 +35,8 @@ if hasattr(torch, 'cuda') and torch.cuda.is_available():
     except:
         device = None
 
-# if device is None and hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
-#     device = torch.device('mps')
+if device is None and hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+    device = torch.device('mps')
 
 if device is None:
     device = torch.device('cpu')
@@ -79,7 +79,7 @@ def seq2tensor(seq, device=device):
     encode_seq = []
     for element in seq.upper():
         encode_seq.append(one_hot[element])
-    return torch.tensor(encode_seq, dtype=torch.float, requires_grad=True, device=device).t().unsqueeze(dim=0)
+    return torch.tensor(encode_seq, dtype=torch.float32, requires_grad=True, device=device).t().unsqueeze(dim=0)
 
 
 def seqs2tensor(seqs, device=device):
@@ -90,7 +90,7 @@ def seqs2tensor(seqs, device=device):
         encode_seq = []
         for element in seq.upper():
             encode_seq.append(one_hot[element])
-        seqs_tensor.append(torch.tensor(encode_seq, dtype=torch.float, device=device).t().unsqueeze(dim=0))
+        seqs_tensor.append(torch.tensor(encode_seq, dtype=torch.float32, device=device).t().unsqueeze(dim=0))
     return torch.cat(seqs_tensor, 0)
 
 
