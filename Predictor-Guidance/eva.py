@@ -20,6 +20,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-task_id', type=int, help='后端task_id')
 parser.add_argument('-env', type=str, help='使用环境')
 parser.add_argument('-target', type=float, help='目标活性')
+parser.add_argument('-species', type=str, help='maize | sorghum | arabidopsis')
 
 args = parser.parse_args()
 task_id = args.task_id
@@ -42,23 +43,46 @@ if device is None:
     device = torch.device('cpu')
 print(f"Using device: {device}")
 # 环境选择
-filename = 'Predictor-Guidance/'
+species = args.species
+file_path_species = ''
+if species == 'maize':
+    file_path_species = 'maize'
+elif species == 'sorghum':
+    file_path_species = 'sorghum'
+elif species == 'arabidopsis':
+    file_path_species = 'arabidopsis'
+else:
+    raise ValueError("species参数错误")
+file_path = f'Predictor-Guidance/{file_path_species}/'
 if env == 'WDM':
-    filename += "adv_model_params.pkl"
-
-if filename == 'Predictor-Guidance/':
+    filename = file_path + "wdm/model_params.pkl"
+elif env == 'NDM':
+    filename = file_path + "ndm/model_params.pkl"
+elif env == 'NDT':
+    filename = file_path + "ndt/model_params.pkl"
+elif env == 'NLT':
+    filename = file_path + "nlt/model_params.pkl"
+elif env == 'WDT':
+    filename = file_path + "wdt/model_params.pkl"
+elif env == 'WLT':
+    filename = file_path + "wlt/model_params.pkl"
+else:
     raise ValueError("env参数错误")
 
-
-model = torch.load('Predictor-Guidance/model.pkl', map_location=device, weights_only=False)
+model = torch.load(f'{file_path}model.pkl', map_location=device, weights_only=False)
+if species == 'sorghum' or species == 'arabidopsis':
+    model = UNetModel()  # 先创建模型实例
+    state_dict = torch.load(f'{file_path}model.pkl', map_location=device, weights_only=False)  # 加载状态字典
+    model.load_state_dict(state_dict)
+model.to(device)
 model.eval()
 
 adv_model = advNet().to(device)
-adv_model.load_state_dict(torch.load(filename, map_location=device)) # adv_model 一种环境，其他暂无
+adv_model.load_state_dict(torch.load(filename, map_location=device))  # 选择环境
 adv_model.eval()
 
 
-def cond_fn(x, target=target_input, guidance_loss_scale=10000): # target:目标活性 用户输入
+def cond_fn(x, target=target_input, guidance_loss_scale=10000):  # target:目标活性 用户输入
     loss_fn = nn.MSELoss()
     tar = torch.tensor([target] * x.size(0), dtype=torch.float32, device=x.device)
     with torch.enable_grad():
@@ -89,11 +113,12 @@ hot_one = {0: 'A', 1: 'C', 2: 'G', 3: 'T'}
 
 ori_seqs, last_seqs = [], []
 ori_v, last_v = [], []
-for iters in range(1):# 运行次数
-    x_start = torch.randn(1, 4, 176, device=device) # 1：次数
+for iters in range(1):  # 运行次数
+    x_start = torch.randn(1, 4, 176, device=device)  # 1：次数
 
-    generate_gen = gaussian_diffusion.sample(model, 176, batch_size=1, channels=4, cond=False, x_start=x_start)#batch_size
-        
+    generate_gen = gaussian_diffusion.sample(model, 176, batch_size=1, channels=4, cond=False,
+                                             x_start=x_start)  # batch_size
+
     tmp_ori_seqs = []
     for seq in generate_gen[-1]:
         res = ''
@@ -104,8 +129,8 @@ for iters in range(1):# 运行次数
     ori_seqs += tmp_ori_seqs
     ori_v += adv_model(seqs2tensor(tmp_ori_seqs)).detach().cpu().numpy().tolist()
 
-
-    generate_gen = gaussian_diffusion.sample(model, 176, batch_size=1, channels=4, cond=True, cond_fn=cond_fn, x_start=x_start) # batch_size
+    generate_gen = gaussian_diffusion.sample(model, 176, batch_size=1, channels=4, cond=True, cond_fn=cond_fn,
+                                             x_start=x_start)  # batch_size
     tmp_last_seqs = []
     for seq in generate_gen[-1]:
         res = ''
@@ -195,4 +220,3 @@ with open('res/last_pred_v.csv', 'w', newline='') as f:
 
 np.save("res/input.npy", x_start.detach().cpu().numpy())
 '''
-
