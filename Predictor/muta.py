@@ -18,7 +18,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-task_id', type=int, help='后端task_id')
 parser.add_argument('-env', type=str, help='使用环境')
 parser.add_argument('-species', type=str, help='maize | sorghum | arabidopsis')
-parser.add_argument('-gene', type=str,required=True, help='启动子序列，格式为"基因名:序列"，多个启动子用逗号分隔')
+parser.add_argument('-gene', type=str, required=True, help='启动子序列，格式为"基因名:序列"，多个启动子用逗号分隔')
 
 args = parser.parse_args()
 task_id = args.task_id
@@ -67,9 +67,10 @@ else:
     raise ValueError("env参数错误")
 
 model = Net()
-model.load_state_dict(torch.load(filename, map_location=device)) # 选六种环境 18
+model.load_state_dict(torch.load(filename, map_location=device))  # 选六种环境 18
 model.to(device)
 model.eval()
+
 
 def seq2tensor(seq, device=device):
     one_hot = {'A': [1, 0, 0, 0], 'C': [0, 1, 0, 0], 'G': [0, 0, 1, 0], 'T': [0, 0, 0, 1], 'N': [0, 0, 0, 0]}
@@ -77,6 +78,7 @@ def seq2tensor(seq, device=device):
     for element in seq.upper():
         encode_seq.append(one_hot[element])
     return torch.tensor(encode_seq, dtype=torch.float32, device=device).t().unsqueeze(dim=0)
+
 
 # 解析启动子参数
 dict_promoter = {}
@@ -88,16 +90,13 @@ if args.gene:
 # dict_promoter = {"gen_0":"ACCTTGAAAGTATTTTTCACTGTATTTTGACGTCAGCCCATCACAATCTCGAAACCTTAAAGCTTATCGCGGCTTGCCCCGCCCACCACACGCACTGCCATGAATCCCCGCGCACTGATCATGCTCAGCACTGTCGTTTTCAGTGGGGGTGGCCAGAAAAGAGACCAGCT"}
 dict_res = {}
 for gene, seq in dict_promoter.items():
-    predict_v = model(seq2tensor(seq)).item() # predict_v 对应seq预测的活性值
+    predict_v = model(seq2tensor(seq)).item()  # predict_v 对应seq预测的活性值
     dict_res[gene] = predict_v
-    print(gene, predict_v) # 写到文件
+    print(gene, predict_v)  # 写到文件
 
 os.makedirs(f'Predictor/res/{task_id}', exist_ok=True)
 with open(f'Predictor/res/{task_id}/pred_v.csv', 'w', newline='') as f:
     csv_writer = csv.writer(f)
-    csv_writer.writerow(['gene', 'pred_v'])
+    csv_writer.writerow(['gene', 'pred_v', 'seq'])
     for gene, pred_v in dict_res.items():
-        csv_writer.writerow([gene, pred_v])
-
-
-
+        csv_writer.writerow([gene, pred_v,dict_promoter[gene]])
